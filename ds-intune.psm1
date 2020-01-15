@@ -373,11 +373,11 @@ function Get-DsIntuneDevicesWithApp {
 	.PARAMETER ShowProgress
 	Display progress during execution (default is silent / no progress shown)
 	.EXAMPLE
-	Get-DsIntuneDevicesWithApp -Application "Putty*" -UserName "john.doe@contoso.com"
-	Returns list of Intune-managed devices which have any apps beginning with "Putty" installed
+	Get-DsIntuneDevicesWithApp -Application "*Putty*" -UserName "john.doe@contoso.com"
+	Returns list of Intune-managed devices which have any app name containing "Putty" installed
 	.EXAMPLE
-	Get-DsIntuneDevicesWithApp -Application "Putty*" -UserName "john.doe@contoso.com" -ShowProgress
-	Returns list of Intune-managed devices which have any apps beginning with "Putty" installed and displays progress during execution
+	Get-DsIntuneDevicesWithApp -Application "*Putty*" -UserName "john.doe@contoso.com" -ShowProgress
+	Returns list of Intune-managed devices which have any apps name containing "Putty" installed, and displays progress during execution
 	.NOTES
 	This function was derived almost entirely from https://www.dowst.dev/search-intune-for-devices-with-application-installed/
 	(Thanks to Matt Dowst)
@@ -410,5 +410,37 @@ function Get-DsIntuneDevicesWithApp {
 		$wp++
 	}
 	if ($ShowProgress) { Write-Progress -Activity "Done" -Id 1 -Completed }
-	$FoundApp #| Sort-Object deviceName | Format-Table
+	$FoundApp
+}
+
+function Get-DsIntuneAppInstallCounts {
+	<#
+	.SYNOPSIS
+	Return Applications grouped and sorted by Installation Counts
+	.DESCRIPTION
+	Return Applications grouped and sorted by Installation Counts in descending order
+	.PARAMETER AppDataSet
+	Applications dataset returned from Get-DsIntuneDeviceApps()
+	.PARAMETER RowCount
+	Limit to first (N) rows (default is 0 / returns all rows)
+	.EXAMPLE
+	$apps = Get-DsIntuneDeviceApps -DataSet $devices
+	$top20 = Get-DsIntuneAppInstallCounts -AppDataSet $apps -RowCount 20
+	#>
+	param (
+		[parameter()] $AppDataSet,
+		[parameter()][int] $RowCount = 0
+	)
+	try {
+		$result = $AppDataSet | Group-Object -Property ProductName,ProductVersion | Select-Object Count,Name | Sort-Object Count -Descending
+		if ($RowCount -gt 0) { 
+			$result | Select-Object -First $RowCount
+		}
+		else {
+			$result
+		}
+	}
+	catch {
+		Write-Error $_.Exception.Message
+	}
 }
