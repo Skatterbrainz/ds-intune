@@ -8,6 +8,8 @@ Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT
 See LICENSE in the project root for license information.
 #>
 
+#region Microsoft GitHub sample code
+
 function Get-AuthToken {
 	<#
 	.SYNOPSIS
@@ -256,6 +258,7 @@ Function Get-ManagedDevices(){
 	}
 }
 
+#endregion 
 function Get-DsIntuneDeviceData {
 	<#
 	.SYNOPSIS
@@ -314,6 +317,7 @@ function Get-DsIntuneDeviceApps($DataSet) {
 	.PARAMETER DataSet
 	Data returned from Get-DsIntuneDeviceData()
 	.EXAMPLE
+	$devices = Get-DsIntuneDeviceData -UserName "john.doe@contoso.com"
 	$applist = Get-DsIntuneDeviceApps -DataSet $devices
 	#>
 	foreach ($row in $Dataset) {
@@ -335,6 +339,11 @@ function Get-DsIntuneDeviceApps($DataSet) {
 }
 
 Function Get-MsGraphData($Path) {
+	<#
+	.NOTES
+	This function was derived from https://www.dowst.dev/search-intune-for-devices-with-application-installed/
+	(Thanks to Matt Dowst)
+	#>
 	$FullUri = "https://graph.microsoft.com/beta/$Path"
 	[System.Collections.Generic.List[PSObject]]$Collection = @()
 	$NextLink = $FullUri
@@ -369,6 +378,9 @@ function Get-DsIntuneDevicesWithApp {
 	.EXAMPLE
 	Get-DsIntuneDevicesWithApp -Application "Putty*" -UserName "john.doe@contoso.com" -ShowProgress
 	Returns list of Intune-managed devices which have any apps beginning with "Putty" installed and displays progress during execution
+	.NOTES
+	This function was derived almost entirely from https://www.dowst.dev/search-intune-for-devices-with-application-installed/
+	(Thanks to Matt Dowst)
 	#>
 	[CmdletBinding()]
 	param (
