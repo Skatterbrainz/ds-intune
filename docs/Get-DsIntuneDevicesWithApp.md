@@ -1,7 +1,7 @@
 ---
 external help file: ds-intune-help.xml
 Module Name: ds-intune
-online version:
+online version: https://github.com/Skatterbrainz/ds-intune/blob/master/docs/Get-DsIntuneDevicesWithApp.md
 schema: 2.0.0
 ---
 
@@ -13,7 +13,8 @@ Returns Intune managed devices having a specified App installed
 ## SYNTAX
 
 ```
-Get-DsIntuneDevicesWithApp [-Application] <String> [-Username] <String> [-ShowProgress] [<CommonParameters>]
+Get-DsIntuneDevicesWithApp [[-AppDataSet] <Object>] [-Application] <String> [-Username] <String>
+ [-ShowProgress] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -37,6 +38,22 @@ Returns list of Intune-managed devices which have any apps name containing "Putt
 
 ## PARAMETERS
 
+### -AppDataSet
+Applications dataset returned from Get-DsIntuneDeviceApps().
+If not provided, Devices are queried automatically, which will incur additional time.
+
+```yaml
+Type: Object
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: 1
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
 ### -Application
 Name, or wildcard name, of App to search for
 
@@ -46,7 +63,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: True
-Position: 1
+Position: 2
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -61,7 +78,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: True
-Position: 2
+Position: 3
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -94,3 +111,6 @@ This function was derived almost entirely from https://www.dowst.dev/search-intu
 (Thanks to Matt Dowst)
 
 ## RELATED LINKS
+
+[https://github.com/Skatterbrainz/ds-intune/blob/master/docs/Get-DsIntuneDevicesWithApp.md](https://github.com/Skatterbrainz/ds-intune/blob/master/docs/Get-DsIntuneDevicesWithApp.md)
+

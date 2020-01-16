@@ -1,7 +1,7 @@
 ---
 external help file: ds-intune-help.xml
 Module Name: ds-intune
-online version:
+online version: https://github.com/Skatterbrainz/ds-intune/blob/master/docs/Get-DsIntuneDeviceApps.md
 schema: 2.0.0
 ---
 
@@ -52,3 +52,6 @@ Accept wildcard characters: False
 ## NOTES
 
 ## RELATED LINKS
+
+[https://github.com/Skatterbrainz/ds-intune/blob/master/docs/Get-DsIntuneDeviceApps.md](https://github.com/Skatterbrainz/ds-intune/blob/master/docs/Get-DsIntuneDeviceApps.md)
+
