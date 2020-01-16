@@ -275,6 +275,8 @@ function Get-DsIntuneDeviceData {
 	.EXAMPLE
 	$devices = Get-DsIntuneDeviceData -UserName "john.doe@contoso.com" -ShowProgress
 	Returns results of online request to variable $devices while displaying concurrent progress
+	.LINK
+	https://github.com/Skatterbrainz/ds-intune/blob/master/docs/Get-DsIntuneDeviceData.md
 	#>
 	[CmdletBinding()]
 	param(
@@ -319,6 +321,8 @@ function Get-DsIntuneDeviceApps($DataSet) {
 	.EXAMPLE
 	$devices = Get-DsIntuneDeviceData -UserName "john.doe@contoso.com"
 	$applist = Get-DsIntuneDeviceApps -DataSet $devices
+	.LINK
+	https://github.com/Skatterbrainz/ds-intune/blob/master/docs/Get-DsIntuneDeviceApps.md
 	#>
 	foreach ($row in $Dataset) {
 		$devicename = $row.DeviceName
@@ -381,6 +385,8 @@ function Get-DsIntuneDevicesWithApp {
 	.NOTES
 	This function was derived almost entirely from https://www.dowst.dev/search-intune-for-devices-with-application-installed/
 	(Thanks to Matt Dowst)
+	.LINK
+	https://github.com/Skatterbrainz/ds-intune/blob/master/docs/Get-DsIntuneDevicesWithApp.md
 	#>
 	[CmdletBinding()]
 	param (
@@ -426,6 +432,8 @@ function Get-DsIntuneAppInstallCounts {
 	.EXAMPLE
 	$apps = Get-DsIntuneDeviceApps -DataSet $devices
 	$top20 = Get-DsIntuneAppInstallCounts -AppDataSet $apps -RowCount 20
+	.LINK
+	https://github.com/Skatterbrainz/ds-intune/blob/master/docs/Get-DsIntuneAppInstallCounts.md
 	#>
 	param (
 		[parameter()] $AppDataSet,
