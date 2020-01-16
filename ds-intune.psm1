@@ -270,6 +270,9 @@ function Get-DsIntuneDeviceData {
 	UserPrincipalName for authentication request
 	.PARAMETER ShowProgress
 	Display progress as data is exported (default is silent / no progress shown)
+	.PARAMETER Detailed
+	Optional expanded list of device properties: Manufacturer, Model, Memory, 
+	Disk Size, Disk Free, SerialNumber, Ownership, and Category
 	.EXAMPLE
 	$devices = Get-DsIntuneDeviceData -UserName "john.doe@contoso.com"
 	Returns results of online request to variable $devices
@@ -282,39 +285,53 @@ function Get-DsIntuneDeviceData {
 	[CmdletBinding()]
 	param(
 		[parameter(Mandatory)][string] $UserName,
-		[parameter()][switch] $ShowProgress
+		[parameter()][switch] $ShowProgress,
+		[parameter()][switch] $Detailed
 	)
 	Get-DsIntuneAuth -UserName $UserName
 	$Devices = Get-ManagedDevices
 	Write-Host "returned $($Devices.Count) managed devices"
 	if ($Devices){
 		$dx = 1
-		#$Results = @()
 		$dcount = $Devices.Count
 		foreach ($Device in $Devices){
 			if ($ShowProgress) { 
 				Write-Progress -Activity "Found $dcount" -Status "$dx of $dcount" -PercentComplete $(($dx/$dcount)*100) -id 1
-				#Write-Host -NoNewline "querying device [$dx] of [$dcount]" -ForegroundColor Green 
 			}
 			$DeviceID = $Device.id
 			$uri = "https://graph.microsoft.com/beta/deviceManagement/manageddevices('$DeviceID')?`$expand=detectedApps"
 			$DetectedApps = (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).detectedApps
 			$dx++
-			$disksize  = [math]::Round(($Device.totalStorageSpaceInBytes / 1GB),2)
-			$freespace = [math]::Round(($Device.freeStorageSpaceInBytes / 1GB),2)
-			[pscustomobject]@{
-				DeviceName   = $Device.DeviceName
-				DeviceID     = $DeviceID
-				Manufacturer = $Device.manufacturer
-				Model        = $Device.model 
-				DiskSizeGB   = $disksize
-				FreeSpaceGB  = $freespace
-				SerialNumber = $Device.serialNumber 
-				OSName       = $Device.operatingSystem 
-				OSVersion    = $Device.osVersion
-				Ownership    = $Device.ownerType
-				Category     = $Device.deviceCategoryDisplayName
-				Apps         = $DetectedApps
+			if ($Detailed) {
+				$disksize  = [math]::Round(($Device.totalStorageSpaceInBytes / 1GB),2)
+				$freespace = [math]::Round(($Device.freeStorageSpaceInBytes / 1GB),2)
+				$mem       = [math]::Round(($Device.physicalMemoryInBytes / 1GB),2)
+				[pscustomobject]@{
+					DeviceName   = $Device.DeviceName
+					DeviceID     = $DeviceID
+					Manufacturer = $Device.manufacturer
+					Model        = $Device.model 
+					MemoryGB     = $mem
+					DiskSizeGB   = $disksize
+					FreeSpaceGB  = $freespace
+					SerialNumber = $Device.serialNumber 
+					OSName       = $Device.operatingSystem 
+					OSVersion    = $Device.osVersion
+					Ownership    = $Device.ownerType
+					Category     = $Device.deviceCategoryDisplayName
+					Apps         = $DetectedApps
+				}
+			}
+			else {
+				$disksize  = [math]::Round(($Device.totalStorageSpaceInBytes / 1GB),2)
+				$freespace = [math]::Round(($Device.freeStorageSpaceInBytes / 1GB),2)
+				[pscustomobject]@{
+					DeviceName   = $Device.DeviceName
+					DeviceID     = $DeviceID
+					OSName       = $Device.operatingSystem 
+					OSVersion    = $Device.osVersion
+					Apps         = $DetectedApps
+				}
 			}
 		}
 	}
