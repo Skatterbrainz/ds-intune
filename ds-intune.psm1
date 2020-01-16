@@ -259,6 +259,7 @@ Function Get-ManagedDevices(){
 }
 
 #endregion 
+
 function Get-DsIntuneDeviceData {
 	<#
 	.SYNOPSIS
@@ -289,18 +290,31 @@ function Get-DsIntuneDeviceData {
 	if ($Devices){
 		$dx = 1
 		#$Results = @()
-		$dcount = $Devics.Count
+		$dcount = $Devices.Count
 		foreach ($Device in $Devices){
-			if ($ShowProgress) { Write-Host -NoNewline "querying device [$dx] of [$dcount]" -ForegroundColor Green }
+			if ($ShowProgress) { 
+				Write-Progress -Activity "Found $dcount" -Status "$dx of $dcount" -PercentComplete $(($dx/$dcount)*100) -id 1
+				#Write-Host -NoNewline "querying device [$dx] of [$dcount]" -ForegroundColor Green 
+			}
 			$DeviceID = $Device.id
 			$uri = "https://graph.microsoft.com/beta/deviceManagement/manageddevices('$DeviceID')?`$expand=detectedApps"
 			$DetectedApps = (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).detectedApps
 			$dx++
+			$disksize  = [math]::Round(($Device.totalStorageSpaceInBytes / 1GB),2)
+			$freespace = [math]::Round(($Device.freeStorageSpaceInBytes / 1GB),2)
 			[pscustomobject]@{
-				DeviceName = $Device.DeviceName
-				DeviceID   = $DeviceID
-				Ownership  = $Device.ownerType
-				Apps       = $DetectedApps
+				DeviceName   = $Device.DeviceName
+				DeviceID     = $DeviceID
+				Manufacturer = $Device.manufacturer
+				Model        = $Device.model 
+				DiskSizeGB   = $disksize
+				FreeSpaceGB  = $freespace
+				SerialNumber = $Device.serialNumber 
+				OSName       = $Device.operatingSystem 
+				OSVersion    = $Device.osVersion
+				Ownership    = $Device.ownerType
+				Category     = $Device.deviceCategoryDisplayName
+				Apps         = $DetectedApps
 			}
 		}
 	}
@@ -370,6 +384,8 @@ function Get-DsIntuneDevicesWithApp {
 	Returns Intune managed devices having a specified App installed
 	.DESCRIPTION
 	Returns Intune managed devices having a specified App installed
+	.PARAMETER AppDataSet
+
 	.PARAMETER Application
 	Name, or wildcard name, of App to search for
 	.PARAMETER UserName
@@ -390,6 +406,7 @@ function Get-DsIntuneDevicesWithApp {
 	#>
 	[CmdletBinding()]
 	param (
+		[parameter()] $AppDataSet,
 		[parameter(Mandatory)][ValidateNotNullOrEmpty()][string] $Application,
 		[parameter(Mandatory)][ValidateNotNullOrEmpty()][string] $Username,
 		[parameter()][switch] $ShowProgress
@@ -447,6 +464,67 @@ function Get-DsIntuneAppInstallCounts {
 		else {
 			$result
 		}
+	}
+	catch {
+		Write-Error $_.Exception.Message
+	}
+}
+
+function Export-DsIntuneAppInventory {
+	<#
+	.SYNOPSIS
+	Export Intune Device Applications Inventory to Excel Workbook
+	.DESCRIPTION
+	Export Intune Device Applications Inventory to Excel Workbook
+	.PARAMETER DeviceData
+	Device data returned from Get-DsIntuneDeviceData(). If not provided, Get-DsIntuneDeviceData() is invoked automatically.
+	Passing Device data to -DeviceData can save significant processing time.
+	.PARAMETER Title
+	Title used for prefix of XLSX filename
+	.PARAMETER UserName
+	UserPrincipalName for authentication
+	.PARAMETER Overwrite
+	Replace output file it exists
+	.EXAMPLE
+	Export-DsIntuneAppInventory -Title "Contoso" -UserName "john.doe@contoso.com" -Overwrite
+	.NOTES
+	Requires PS module ImportExcel
+	.LINK
+	https://github.com/Skatterbrainz/ds-intune/blob/master/docs/Export-DsIntuneAppInventory.md
+	#>
+	[CmdletBinding()]
+	param (
+		[parameter()] $DeviceData,
+		[parameter(Mandatory)][ValidateNotNullOrEmpty()][string] $Title,
+		[parameter(Mandatory)][ValidateNotNullOrEmpty()][string] $UserName,
+		[parameter()][switch] $Overwrite
+	)
+	if (!(Get-Module ImportExcel -ListAvailable)) {
+		Write-Warning "This function requires the PowerShell module ImportExcel, which is not installed."
+		break
+	}
+	try {
+		$xlFile = "$($env:USERPROFILE)\Documents\$Title`_IntuneDeviceApps_$(Get-Date -f 'yyyy-MM-dd').xlsx"
+		if ((Test-Path $xlFile) -and (!$Overwrite)) {
+			Write-Warning "Output file exists [$xlFile]. Use -Overwrite to replace."
+			break
+		}
+		$time1 = Get-Date
+		if (!$DeviceData) {
+			Write-Host "requesting managed devices data from Intune" -ForegroundColor Cyan
+			$DeviceData = Get-DsIntuneDeviceData -UserName $UserName
+		}
+		Write-Host "querying installed applications for each device" -ForegroundColor Cyan
+		$applist = Get-DsIntuneDeviceApps -DataSet $DeviceData
+		Write-Host "exporting results to file: $xlFile" -ForegroundColor Cyan
+		$DeviceData | Select-Object DeviceName,DeviceID,Ownership | 
+			Export-excel -Path $xlFile -WorksheetName "Devices" -ClearSheet -AutoSize -AutoFilter -FreezeTopRow
+		$applist | 
+			Export-excel -Path $xlFile -WorksheetName "Applications" -ClearSheet -AutoSize -AutoFilter -FreezeTopRow
+		Write-Host "Results saved to: $xlFile" -ForegroundColor Green
+		$time2 = Get-Date
+		$rt = New-TimeSpan -Start $time1 -End $time2
+		Write-Host "total runtime: $($rt.Hours)`:$($rt.Minutes)`:$($rt.Seconds) (hh`:mm`:ss)" -ForegroundColor Cyan
 	}
 	catch {
 		Write-Error $_.Exception.Message
