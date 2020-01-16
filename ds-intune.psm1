@@ -385,7 +385,8 @@ function Get-DsIntuneDevicesWithApp {
 	.DESCRIPTION
 	Returns Intune managed devices having a specified App installed
 	.PARAMETER AppDataSet
-
+	Applications dataset returned from Get-DsIntuneDeviceApps().
+	If not provided, Devices are queried automatically, which will incur additional time.
 	.PARAMETER Application
 	Name, or wildcard name, of App to search for
 	.PARAMETER UserName
@@ -485,8 +486,14 @@ function Export-DsIntuneAppInventory {
 	UserPrincipalName for authentication
 	.PARAMETER Overwrite
 	Replace output file it exists
+	.PARAMETER Show
+	Open workbook in Excel when completed (requires Excel on host machine)
 	.EXAMPLE
 	Export-DsIntuneAppInventory -Title "Contoso" -UserName "john.doe@contoso.com" -Overwrite
+	Queries devices and applications to generate output file
+	.EXAMPLE
+	Export-DsIntuneAppInventory -DeviceData $devices -Title "Contoso" -UserName "john.doe@contoso.com" -Overwrite -Show
+	Processes existing data ($devices) to generate output file and display the results in Excel when finished
 	.NOTES
 	Requires PS module ImportExcel
 	.LINK
@@ -497,7 +504,8 @@ function Export-DsIntuneAppInventory {
 		[parameter()] $DeviceData,
 		[parameter(Mandatory)][ValidateNotNullOrEmpty()][string] $Title,
 		[parameter(Mandatory)][ValidateNotNullOrEmpty()][string] $UserName,
-		[parameter()][switch] $Overwrite
+		[parameter()][switch] $Overwrite,
+		[parameter()][switch] $Show
 	)
 	if (!(Get-Module ImportExcel -ListAvailable)) {
 		Write-Warning "This function requires the PowerShell module ImportExcel, which is not installed."
@@ -517,14 +525,17 @@ function Export-DsIntuneAppInventory {
 		Write-Host "querying installed applications for each device" -ForegroundColor Cyan
 		$applist = Get-DsIntuneDeviceApps -DataSet $DeviceData
 		Write-Host "exporting results to file: $xlFile" -ForegroundColor Cyan
-		$DeviceData | Select-Object DeviceName,DeviceID,Ownership | 
-			Export-excel -Path $xlFile -WorksheetName "Devices" -ClearSheet -AutoSize -AutoFilter -FreezeTopRow
+		$DeviceData | Select-Object DeviceName,DeviceID,Manufacturer,Model,DiskSizeGB,FreeSpaceGB,SerialNumber,OSName,OSVersion,Ownership,Category |
+			Export-Excel -Path $xlFile -WorksheetName "Devices" -ClearSheet -AutoSize -AutoFilter -FreezeTopRow
 		$applist | 
-			Export-excel -Path $xlFile -WorksheetName "Applications" -ClearSheet -AutoSize -AutoFilter -FreezeTopRow
+			Export-Excel -Path $xlFile -WorksheetName "Applications" -ClearSheet -AutoSize -AutoFilter -FreezeTopRow
 		Write-Host "Results saved to: $xlFile" -ForegroundColor Green
 		$time2 = Get-Date
 		$rt = New-TimeSpan -Start $time1 -End $time2
 		Write-Host "total runtime: $($rt.Hours)`:$($rt.Minutes)`:$($rt.Seconds) (hh`:mm`:ss)" -ForegroundColor Cyan
+		if ($Show) {
+			Start-Process -FilePath "$xlFile"
+		}
 	}
 	catch {
 		Write-Error $_.Exception.Message
