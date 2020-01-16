@@ -537,7 +537,10 @@ function Export-DsIntuneAppInventory {
 		$time1 = Get-Date
 		if (!$DeviceData) {
 			Write-Host "requesting managed devices data from Intune" -ForegroundColor Cyan
-			$DeviceData = Get-DsIntuneDeviceData -UserName $UserName
+			$DeviceData = Get-DsIntuneDeviceData -UserName $UserName -Detailed
+		}
+		else {
+			Write-Warning "device dataset should be derived with [-Detailed] option, to get the full set of properties."
 		}
 		Write-Host "querying installed applications for each device" -ForegroundColor Cyan
 		$applist = Get-DsIntuneDeviceApps -DataSet $DeviceData
