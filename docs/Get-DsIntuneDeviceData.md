@@ -13,7 +13,7 @@ Returns dataset of Intune-managed devices with inventoried apps
 ## SYNTAX
 
 ```
-Get-DsIntuneDeviceData [-UserName] <String> [-ShowProgress] [<CommonParameters>]
+Get-DsIntuneDeviceData [-UserName] <String> [-ShowProgress] [-Detailed] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -54,6 +54,22 @@ Accept wildcard characters: False
 
 ### -ShowProgress
 Display progress as data is exported (default is silent / no progress shown)
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: False
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -Detailed
+Optional expanded list of device properties: Manufacturer, Model, Memory, 
+Disk Size, Disk Free, SerialNumber, Ownership, and Category
 
 ```yaml
 Type: SwitchParameter
