@@ -53,7 +53,6 @@ function Get-AuthToken {
 	if ($AadModule.count -gt 1){
 		$Latest_Version = ($AadModule | Select-Object version | Sort-Object)[-1]
 		$aadModule = $AadModule | Where-Object { $_.version -eq $Latest_Version.version }
-
 		# Checking if there are multiple versions of the same module found
 		if($AadModule.count -gt 1){
 			$aadModule = $AadModule | Select-Object -Unique
@@ -369,7 +368,7 @@ function Get-DsIntuneDeviceApps($DataSet) {
 					}
 				}
 			}
-		}   
+		}
 	}
 }
 
@@ -786,14 +785,16 @@ function Invoke-DsLogAnalyticsQuery {
 }
 
 function Test-DsIntuneUpdate {
+	[CmdletBinding()]
+	param()
 	try {
 		$chkver = (Find-Module "ds-intune").Version
 		$insver = ((Get-Module "ds-intune" | Sort-Object version -Descending).Version)[0] -join '.'
-		if ($insver -ne $chkver) {
+		if ($insver -lt $chkver) {
 			Write-Warning "ds-intune $insver is installed. Latest version is $chkver. Use Update-Module ds-intune to update."
 		}
 		else {
-			Write-Host "ds-intune $insver is up to date." -ForegroundColor Gray
+			Write-Host "ds-intune $insver is up to date." -ForegroundColor Green
 		}
 	}
 	catch {
@@ -802,4 +803,4 @@ function Test-DsIntuneUpdate {
 	}
 }
 
-Test-DsIntuneUpdate
+#Test-DsIntuneUpdate
