@@ -852,24 +852,25 @@ function Invoke-DsIntuneAppQuery {
 		unique installations by device.  Some devices will report multiple instances of 
 		the same application, with different ProductVersion numbers. This function excludes
 		duplicates to show one-per-device only.
-	.PARAMETER DataSet
+	.PARAMETER AppDataSet
 		Device data returned from Get-DsIntuneDeviceData(). If not provided, Get-DsIntuneDeviceData() is invoked automatically.
 		Passing Device data to -DeviceData can save significant processing time.
 	.PARAMETER ProductName
 		Application Product name
 	.EXAMPLE
-		$devices = Get-DsIntuneDeviceData()
-		$rows = Invoke-DsIntuneAppQuery -DataSet $devices -ProductName "Acme Crapware 19.20 64-bit"
+		$devices = Get-DsIntuneDeviceData -UserName "john.doe@contoso.com"
+		$applist = Get-DsIntuneDeviceApps -DataSet $devices
+		$rows = Invoke-DsIntuneAppQuery -AppDataSet $applist -ProductName "Acme Crapware 19.20 64-bit"
 	.LINK
 		https://github.com/Skatterbrainz/ds-intune/blob/master/docs/Invoke-DsIntuneAppQuery.md
 	#>
 	[CmdletBinding()]
 	param (
-		[parameter(Mandatory)][ValidateNotNullOrEmpty()] $DataSet,
+		[parameter(Mandatory)][ValidateNotNullOrEmpty()] $AppDataSet,
 		[parameter(Mandatory)][ValidateNotNullOrEmpty()][string] $ProductName
 	)
 	try {
-		$result = ($DataSet | Select-Object ProductName,DeviceName | Where-Object {$_.ProductName -eq $ProductName} | Sort-Object ProductName,DeviceName -Unique)
+		$result = ($AppDataSet | Select-Object ProductName,DeviceName | Where-Object {$_.ProductName -eq $ProductName} | Sort-Object ProductName,DeviceName -Unique)
 	}
 	catch {
 		Write-Error $_.Exception.Message
