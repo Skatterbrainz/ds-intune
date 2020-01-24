@@ -784,6 +784,100 @@ function Invoke-DsLogAnalyticsQuery {
 	$result
 }
 
+function Invoke-DsExcelQuery {
+	<#
+	.SYNOPSIS
+		Query Excel Workbook/WorkSheet using SQL statement
+	.DESCRIPTION
+		Same as above
+	.PARAMETER FilePath
+		Path and filename to .xlsx workbook file
+	.PARAMETER Query
+		SQL query statement
+	.EXAMPLE
+		$xlFile = "c:\myfiles\IntuneDeviceData.xlsx"
+		$query = "select DeviceName,ProductName from [IntuneApps$] where ProductName='Crapware 2019'"
+		$rows = Invoke-DsExcelQuery -FilePath $xlFile -Query $query
+	.LINK
+		https://github.com/Skatterbrainz/ds-intune/blob/master/docs/Invoke-DsExcelQuery.md
+	#>
+	[CmdletBinding()]
+	param (
+		[parameter(Mandatory)][ValidateNotNullOrEmpty()][string] $FilePath,
+		[parameter(Mandatory)][ValidateNotNullOrEmpty()][string] $Query
+	)
+	if (-not(Test-Path $FilePath)) {
+		Write-Warning "file not found: $FilePath"
+		break
+	}
+	try {
+		$conn = New-Object System.Data.OleDb.OleDbConnection
+		$cmd  = New-Object System.Data.OleDb.OleDbCommand
+
+		$connstr = "Provider=Microsoft.ACE.OLEDB.12.0;Data Source=$FilePath;Extended Properties='Excel 12.0 Xml;HDR=YES;'"
+		$conn.ConnectionString = $connstr
+
+		$conn.Open()
+		#$conn.GetSchema("tables")
+		$cmd.CommandText = $query
+		$cmd.CommandType = "Text"
+		$cmd.Connection = $conn
+
+		$dataReader = $cmd.ExecuteReader()
+		$result = @()
+		while ($dataReader.Read()) {
+			$columns = $($dataReader.GetSchemaTable()).ColumnName
+			$row = New-Object PSObject
+			foreach ($column in $columns) {
+				$row | Add-Member -MemberType NoteProperty -Name $column -Value $dataReader.item($column)
+			}
+			$result += $row
+		}
+	}
+	catch {
+		Write-Error $_.Exception.Message
+	}
+	finally {
+		$conn.Close()
+		$result
+	}
+}
+
+function Invoke-DsIntuneAppQuery {
+	<#
+	.SYNOPSIS
+		Query DataSet for unique App installation counts
+	.DESCRIPTION
+		Filters instances of application installations by Name/Title only to determine
+		unique installations by device.  Some devices will report multiple instances of 
+		the same application, with different ProductVersion numbers. This function excludes
+		duplicates to show one-per-device only.
+	.PARAMETER DataSet
+		Device data returned from Get-DsIntuneDeviceData(). If not provided, Get-DsIntuneDeviceData() is invoked automatically.
+		Passing Device data to -DeviceData can save significant processing time.
+	.PARAMETER ProductName
+		Application Product name
+	.EXAMPLE
+		$devices = Get-DsIntuneDeviceData()
+		$rows = Invoke-DsIntuneAppQuery -DataSet $devices -ProductName "Acme Crapware 19.20 64-bit"
+	.LINK
+		https://github.com/Skatterbrainz/ds-intune/blob/master/docs/Invoke-DsIntuneAppQuery.md
+	#>
+	[CmdletBinding()]
+	param (
+		[parameter(Mandatory)][ValidateNotNullOrEmpty()] $DataSet,
+		[parameter(Mandatory)][ValidateNotNullOrEmpty()][string] $ProductName
+	)
+	try {
+		$result = ($DataSet | Select-Object ProductName,DeviceName | Where-Object {$_.ProductName -eq $ProductName} | Sort-Object ProductName,DeviceName -Unique)
+	}
+	catch {
+		Write-Error $_.Exception.Message
+	}
+	finally {
+		$result
+	}
+}
 function Test-DsIntuneUpdate {
 	[CmdletBinding()]
 	param()
