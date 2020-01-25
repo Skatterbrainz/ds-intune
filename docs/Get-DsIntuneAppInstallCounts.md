@@ -68,6 +68,7 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 ## OUTPUTS
 
 ## NOTES
+NAME: Get-DsIntuneAppInstallCounts
 
 ## RELATED LINKS
 

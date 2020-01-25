@@ -50,6 +50,7 @@ Accept wildcard characters: False
 ## OUTPUTS
 
 ## NOTES
+NAME: Get-DsIntuneDeviceApps
 
 ## RELATED LINKS
 

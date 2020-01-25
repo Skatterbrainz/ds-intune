@@ -13,7 +13,7 @@ Returns dataset of Intune-managed devices with inventoried apps
 ## SYNTAX
 
 ```
-Get-DsIntuneDeviceData [-UserName] <String> [-ShowProgress] [-Detailed] [<CommonParameters>]
+Get-DsIntuneDeviceData [-UserName] <String> [-ShowProgress] [-Detailed] [-NoApps] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -34,6 +34,21 @@ $devices = Get-DsIntuneDeviceData -UserName "john.doe@contoso.com" -ShowProgress
 ```
 
 Returns results of online request to variable $devices while displaying concurrent progress
+
+### EXAMPLE 3
+```
+$devices = Get-DsIntuneDeviceData -UserName "john.doe@contoso.com" -Detailed -NoApps
+```
+
+Returns detailed results of online request to variable $devices without installed applications data
+
+### EXAMPLE 4
+```
+$devices = Get-DsIntuneDeviceData -UserName "john.doe@contoso.com" -NoApps
+```
+
+Returns summary results of online request to variable $devices without installed applications data
+This is the fastest query option of all the parameter options
 
 ## PARAMETERS
 
@@ -68,8 +83,27 @@ Accept wildcard characters: False
 ```
 
 ### -Detailed
-Optional expanded list of device properties: Manufacturer, Model, Memory, 
-Disk Size, Disk Free, SerialNumber, Ownership, and Category
+Optional expanded list of device properties which includes:
+* DeviceName, DeviceID, Manufacturer, Model, MemoryGB, DiskSizeGB, FreeSpaceGB,	
+  SerialNumber, OSName, OSVersion, Ownership, Category, LastSyncTime, Apps
+* The default return property set: DeviceName, DeviceID, OSName, OSVersion, LastSyncTime, Apps
+* Note that for either case, Apps will be set to $null if parameter -NoApps is used
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: False
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -NoApps
+Exclude installed Applications data from return dataset
+This reduces overall query time significantly!
 
 ```yaml
 Type: SwitchParameter
@@ -91,6 +125,7 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 ## OUTPUTS
 
 ## NOTES
+NAME: Get-DsIntuneDeviceData
 
 ## RELATED LINKS
 

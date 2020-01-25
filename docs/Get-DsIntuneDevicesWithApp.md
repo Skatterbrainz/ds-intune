@@ -107,6 +107,7 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 ## OUTPUTS
 
 ## NOTES
+NAME: Get-DsIntuneDevicesWithApp
 This function was derived almost entirely from https://www.dowst.dev/search-intune-for-devices-with-application-installed/
 (Thanks to Matt Dowst)
 

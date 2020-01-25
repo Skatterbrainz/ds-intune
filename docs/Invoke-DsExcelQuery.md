@@ -69,6 +69,7 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 ## OUTPUTS
 
 ## NOTES
+NAME: Invoke-DsExcelQuery
 
 ## RELATED LINKS
 

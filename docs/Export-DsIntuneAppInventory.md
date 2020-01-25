@@ -14,7 +14,7 @@ Export Intune Device Applications Inventory to Excel Workbook
 
 ```
 Export-DsIntuneAppInventory [[-DeviceData] <Object>] [-Title] <String> [-UserName] <String> [-Overwrite]
- [-Show] [<CommonParameters>]
+ [-Distinct] [-Show] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -35,6 +35,13 @@ Export-DsIntuneAppInventory -DeviceData $devices -Title "Contoso" -UserName "joh
 ```
 
 Processes existing data ($devices) to generate output file and display the results in Excel when finished
+
+### EXAMPLE 3
+```
+Export-DsIntuneAppInventory -DeviceData $devices -Title "Contoso" -UserName "john.doe@contoso.com" -Overwrite -Show -Distinct
+```
+
+Processes existing data ($devices) to generate output file and display the unique App results in Excel when finished
 
 ## PARAMETERS
 
@@ -100,6 +107,21 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
+### -Distinct
+Filter DeviceName+AppName only to remove duplicates arising from different versions
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: False
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
 ### -Show
 Open workbook in Excel when completed (requires Excel on host machine)
 
@@ -123,6 +145,7 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 ## OUTPUTS
 
 ## NOTES
+NAME: Export-DsIntuneAppInventory
 Requires PS module ImportExcel
 
 ## RELATED LINKS

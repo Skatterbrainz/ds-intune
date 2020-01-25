@@ -13,7 +13,7 @@ Query DataSet for unique App installation counts
 ## SYNTAX
 
 ```
-Invoke-DsIntuneAppQuery [-DataSet] <Object> [-ProductName] <String> [<CommonParameters>]
+Invoke-DsIntuneAppQuery [-AppDataSet] <Object> [-ProductName] <String> [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -28,14 +28,15 @@ duplicates to show one-per-device only.
 
 ### EXAMPLE 1
 ```
-$devices = Get-DsIntuneDeviceData()
+$devices = Get-DsIntuneDeviceData -UserName "john.doe@contoso.com"
 ```
 
-$rows = Invoke-DsIntuneAppQuery -DataSet $devices -ProductName "Acme Crapware 19.20 64-bit"
+$applist = Get-DsIntuneDeviceApps -DataSet $devices
+$rows = Invoke-DsIntuneAppQuery -AppDataSet $applist -ProductName "Acme Crapware 19.20 64-bit"
 
 ## PARAMETERS
 
-### -DataSet
+### -AppDataSet
 Device data returned from Get-DsIntuneDeviceData().
 If not provided, Get-DsIntuneDeviceData() is invoked automatically.
 Passing Device data to -DeviceData can save significant processing time.
@@ -75,6 +76,7 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 ## OUTPUTS
 
 ## NOTES
+NAME: Invoke-DsIntuneAppQuery
 
 ## RELATED LINKS
 

@@ -193,6 +193,7 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 ## OUTPUTS
 
 ## NOTES
+NAME: Invoke-DsLogAnaltyicsQuery
 Adapted heavily from Eli Shlomo example at https://www.eshlomo.us/query-azure-log-analytics-data-with-powershell/
 
 ## RELATED LINKS

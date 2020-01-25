@@ -1,14 +1,14 @@
 ---
 external help file: ds-intune-help.xml
 Module Name: ds-intune
-online version: https://github.com/Skatterbrainz/ds-intune/blob/master/docs/Invoke-DsLogAnalyticsQuery.md
+online version: https://github.com/Skatterbrainz/ds-intune/blob/master/docs/Test-DsIntuneUpdate.md
 schema: 2.0.0
 ---
 
 # Test-DsIntuneUpdate
 
 ## SYNOPSIS
-{{ Fill in the Synopsis }}
+Compare installed module version with latest in PS Gallery
 
 ## SYNTAX
 
@@ -17,16 +17,14 @@ Test-DsIntuneUpdate [<CommonParameters>]
 ```
 
 ## DESCRIPTION
-{{ Fill in the Description }}
+Compare installed module version with latest in PS Gallery
 
 ## EXAMPLES
 
-### Example 1
-```powershell
-PS C:\> {{ Add example code here }}
+### EXAMPLE 1
 ```
-
-{{ Add example description here }}
+Test-DsIntuneUpdate
+```
 
 ## PARAMETERS
 
@@ -35,11 +33,12 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### None
-
 ## OUTPUTS
 
-### System.Object
 ## NOTES
+NAME: Test-DsIntuneUpdate
 
 ## RELATED LINKS
+
+[https://github.com/Skatterbrainz/ds-intune/blob/master/docs/Test-DsIntuneUpdate.md](https://github.com/Skatterbrainz/ds-intune/blob/master/docs/Test-DsIntuneUpdate.md)
+
