@@ -870,7 +870,7 @@ function Invoke-DsIntuneAppQuery {
 		[parameter(Mandatory)][ValidateNotNullOrEmpty()][string] $ProductName
 	)
 	try {
-		$result = ($AppDataSet | Select-Object ProductName,DeviceName | Where-Object {$_.ProductName -eq $ProductName} | Sort-Object ProductName,DeviceName -Unique)
+		$result = ($AppDataSet | Select-Object ProductName,DeviceName -Unique | Where-Object {$_.ProductName -eq $ProductName} | Sort-Object ProductName,DeviceName)
 	}
 	catch {
 		Write-Error $_.Exception.Message
