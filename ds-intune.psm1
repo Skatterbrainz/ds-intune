@@ -996,7 +996,7 @@ function Test-DsIntuneUpdate {
 			Write-Warning "ds-intune $insver is installed. Latest version is $chkver. Use Update-Module ds-intune to update."
 		}
 		else {
-			Write-Host "ds-intune $insver is up to date." -ForegroundColor Green
+			Write-Host "ds-intune $insver is installed. Latest version is $chkver." -ForegroundColor Green
 		}
 	}
 	catch {
