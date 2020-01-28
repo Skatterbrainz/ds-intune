@@ -1,11 +1,11 @@
 ---
 external help file: ds-intune-help.xml
 Module Name: ds-intune
-online version: https://github.com/Skatterbrainz/ds-intune/blob/master/docs/Get-DsIntuneDeviceData.md
+online version: https://github.com/Skatterbrainz/ds-intune/blob/master/docs/Get-DsIntuneDevices.md
 schema: 2.0.0
 ---
 
-# Get-DsIntuneDeviceData
+# Get-DsIntuneDevices
 
 ## SYNOPSIS
 Returns dataset of Intune-managed devices with inventoried apps
@@ -13,7 +13,7 @@ Returns dataset of Intune-managed devices with inventoried apps
 ## SYNTAX
 
 ```
-Get-DsIntuneDeviceData [-UserName] <String> [-ShowProgress] [-Detailed] [-NoApps] [<CommonParameters>]
+Get-DsIntuneDevices [-UserName] <String> [-ShowProgress] [-Detailed] [-NoApps] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -23,28 +23,28 @@ Returns dataset of Intune-managed devices with inventoried apps
 
 ### EXAMPLE 1
 ```
-$devices = Get-DsIntuneDeviceData -UserName "john.doe@contoso.com"
+$devices = Get-DsIntuneDevices -UserName "john.doe@contoso.com"
 ```
 
 Returns results of online request to variable $devices
 
 ### EXAMPLE 2
 ```
-$devices = Get-DsIntuneDeviceData -UserName "john.doe@contoso.com" -ShowProgress
+$devices = Get-DsIntuneDevices -UserName "john.doe@contoso.com" -ShowProgress
 ```
 
 Returns results of online request to variable $devices while displaying concurrent progress
 
 ### EXAMPLE 3
 ```
-$devices = Get-DsIntuneDeviceData -UserName "john.doe@contoso.com" -Detailed -NoApps
+$devices = Get-DsIntuneDevices -UserName "john.doe@contoso.com" -Detailed -NoApps
 ```
 
 Returns detailed results of online request to variable $devices without installed applications data
 
 ### EXAMPLE 4
 ```
-$devices = Get-DsIntuneDeviceData -UserName "john.doe@contoso.com" -NoApps
+$devices = Get-DsIntuneDevices -UserName "john.doe@contoso.com" -NoApps
 ```
 
 Returns summary results of online request to variable $devices without installed applications data
@@ -84,9 +84,9 @@ Accept wildcard characters: False
 
 ### -Detailed
 Optional expanded list of device properties which includes:
-* DeviceName, DeviceID, Manufacturer, Model, MemoryGB, DiskSizeGB, FreeSpaceGB,	
-  SerialNumber, OSName, OSVersion, Ownership, Category, LastSyncTime, Apps
-* The default return property set: DeviceName, DeviceID, OSName, OSVersion, LastSyncTime, Apps
+* DeviceName, DeviceID, Manufacturer, Model, MemoryGB, DiskSizeGB, FreeSpaceGB,	EthernetMAC, 
+  SerialNumber, OSName, OSVersion, Ownership, Category, LastSyncTime, UserName, Apps
+* The default return property set: DeviceName, DeviceID, OSName, OSVersion, LastSyncTime, UserName, Apps
 * Note that for either case, Apps will be set to $null if parameter -NoApps is used
 
 ```yaml
@@ -125,9 +125,9 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 ## OUTPUTS
 
 ## NOTES
-NAME: Get-DsIntuneDeviceData
+NAME: Get-DsIntuneDevices
 
 ## RELATED LINKS
 
-[https://github.com/Skatterbrainz/ds-intune/blob/master/docs/Get-DsIntuneDeviceData.md](https://github.com/Skatterbrainz/ds-intune/blob/master/docs/Get-DsIntuneDeviceData.md)
+[https://github.com/Skatterbrainz/ds-intune/blob/master/docs/Get-DsIntuneDevices.md](https://github.com/Skatterbrainz/ds-intune/blob/master/docs/Get-DsIntuneDevices.md)
 

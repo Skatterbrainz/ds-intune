@@ -1,11 +1,11 @@
 ---
 external help file: ds-intune-help.xml
 Module Name: ds-intune
-online version: https://github.com/Skatterbrainz/ds-intune/blob/master/docs/Get-DsIntuneDeviceApps.md
+online version: https://github.com/Skatterbrainz/ds-intune/blob/master/docs/Get-DsIntuneInstalledApps.md
 schema: 2.0.0
 ---
 
-# Get-DsIntuneDeviceApps
+# Get-DsIntuneInstalledApps
 
 ## SYNOPSIS
 Returns App inventory data from Intune Device data set
@@ -13,7 +13,7 @@ Returns App inventory data from Intune Device data set
 ## SYNTAX
 
 ```
-Get-DsIntuneDeviceApps [[-DataSet] <Object>]
+Get-DsIntuneInstalledApps [[-DataSet] <Object>]
 ```
 
 ## DESCRIPTION
@@ -23,7 +23,7 @@ Returns App inventory data from Intune Device data set
 
 ### EXAMPLE 1
 ```
-$devices = Get-DsIntuneDeviceData -UserName "john.doe@contoso.com"
+$devices = Get-DsIntuneDevices -UserName "john.doe@contoso.com"
 ```
 
 $applist = Get-DsIntuneDeviceApps -DataSet $devices
@@ -31,7 +31,7 @@ $applist = Get-DsIntuneDeviceApps -DataSet $devices
 ## PARAMETERS
 
 ### -DataSet
-Data returned from Get-DsIntuneDeviceData()
+Data returned from Get-DsIntuneDevices()
 
 ```yaml
 Type: Object
@@ -50,9 +50,9 @@ Accept wildcard characters: False
 ## OUTPUTS
 
 ## NOTES
-NAME: Get-DsIntuneDeviceApps
+NAME: Get-DsIntuneInstalledApps
 
 ## RELATED LINKS
 
-[https://github.com/Skatterbrainz/ds-intune/blob/master/docs/Get-DsIntuneDeviceApps.md](https://github.com/Skatterbrainz/ds-intune/blob/master/docs/Get-DsIntuneDeviceApps.md)
+[https://github.com/Skatterbrainz/ds-intune/blob/master/docs/Get-DsIntuneInstalledApps.md](https://github.com/Skatterbrainz/ds-intune/blob/master/docs/Get-DsIntuneInstalledApps.md)
 

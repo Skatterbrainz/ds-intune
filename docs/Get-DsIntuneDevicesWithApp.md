@@ -13,8 +13,8 @@ Returns Intune managed devices having a specified App installed
 ## SYNTAX
 
 ```
-Get-DsIntuneDevicesWithApp [[-AppDataSet] <Object>] [-Application] <String> [-Username] <String>
- [-ShowProgress] [<CommonParameters>]
+Get-DsIntuneDevicesWithApp [[-AppDataSet] <Object>] [-Application] <String> [[-Version] <String>]
+ [-Username] <String> [-ShowProgress] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -69,6 +69,21 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
+### -Version
+{{ Fill Version Description }}
+
+```yaml
+Type: String
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: 3
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
 ### -Username
 UserPrincipalName for authentication request
 
@@ -78,7 +93,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: True
-Position: 3
+Position: 4
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
