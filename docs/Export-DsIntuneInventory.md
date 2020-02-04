@@ -14,7 +14,7 @@ Export Intune Device Applications Inventory to Excel Workbook
 
 ```
 Export-DsIntuneInventory [[-DeviceData] <Object>] [-Title] <String> [-UserName] <String> [-Overwrite]
- [-Distinct] [-Show] [<CommonParameters>]
+ [-Distinct] [[-DaysOld] <Int32>] [-Show] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -137,6 +137,21 @@ Aliases:
 Required: False
 Position: Named
 Default value: False
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -DaysOld
+Filter stale accounts by specified number of days (range 10 to 1000, default = 180)
+
+```yaml
+Type: Int32
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: 4
+Default value: 180
 Accept pipeline input: False
 Accept wildcard characters: False
 ```

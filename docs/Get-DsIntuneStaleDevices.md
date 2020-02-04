@@ -13,8 +13,8 @@ Returns devices which have not synchronized within the last N (-Days)
 ## SYNTAX
 
 ```
-Get-DsIntuneStaleDevices [[-DataSet] <Object>] [[-Days] <Int32>] [-Detailed] [-ShowProgress]
- [<CommonParameters>]
+Get-DsIntuneStaleDevices [[-DataSet] <Object>] [[-UserName] <String>] [[-Days] <Int32>] [-Detailed]
+ [-ShowProgress] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -54,6 +54,21 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
+### -UserName
+{{ Fill UserName Description }}
+
+```yaml
+Type: String
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: 2
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
 ### -Days
 Number of days to allow (default is 30)
 
@@ -63,7 +78,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: False
-Position: 2
+Position: 3
 Default value: 30
 Accept pipeline input: False
 Accept wildcard characters: False

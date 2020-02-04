@@ -1,7 +1,7 @@
 ---
 external help file: ds-intune-help.xml
 Module Name: ds-intune
-online version: https://github.com/Skatterbrainz/ds-intune/blob/master/docs/Export-DsIntuneInventory.md
+online version: https://github.com/Skatterbrainz/ds-intune/blob/master/docs/Get-DsIntuneAppInstallCounts.md
 schema: 2.0.0
 ---
 
