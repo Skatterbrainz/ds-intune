@@ -189,6 +189,37 @@ Function Get-AADUser() {
 	}
 }
 
+function Get-AADDevices {
+	if (!$AADCred) { $Global:AADCred = Connect-AzureAD }
+	$aadcomps = Get-AzureADDevice -All $True
+	#$cc = $aadcomps.Count
+	#$ix = 1
+	$llogin = $_.ApproximateLastLogonTimeStamp
+	if (![string]::IsNullOrEmpty($llogin)) {
+		$daysOld = (New-TimeSpan -Start $llogin -End (Get-Date)).Days
+	}
+	$aadcomps | Foreach-Object {
+		[pscustomobject]@{
+			Name           = $_.DisplayName
+			DeviceId       = $_.DeviceId
+			ObjectId       = $_.ObjectId
+			Enabled        = $_.AccountEnabled
+			OS             = $_.DeviceOSType
+			OSversion      = $_.DeviceOSVersion
+			TrustType      = $_.DeviceTrustType
+			LastLogon      = $_.ApproximateLastLogonTimeStamp
+			LastLogonDays  = $daysOld
+			IsCompliant    = $($_.IsCompliant -eq $True)
+			IsManaged      = $($_.IsManaged -eq $True)
+			DirSyncEnabled = $($_.DirSyncEnabled -eq $True)
+			LastDirSync    = $_.LastDirSyncTime
+			ProfileType    = $_.ProfileType
+			#RowNum         = "$ix of $cc"
+		}
+		#$ix++
+	}
+}
+
 Function Get-MsGraphData($Path) {
 	<#
 	.SYNOPSIS
@@ -237,13 +268,14 @@ Function Get-ManagedDevices(){
 
 	[cmdletbinding()]
 	param (
+		[parameter(Mandatory)][string] $UserName,
 		[parameter()][switch] $IncludeEAS,
 		[parameter()][switch] $ExcludeMDM
 	)
 	#$graphApiVersion = "beta"
 	$Resource = "deviceManagement/managedDevices"
 	try {
-		Get-DsIntuneAuth
+		Get-DsIntuneAuth -UserName $UserName
 		$Count_Params = 0
 		if ($IncludeEAS.IsPresent){ $Count_Params++ }
 		if ($ExcludeMDM.IsPresent){ $Count_Params++ }
@@ -434,11 +466,16 @@ function Get-DsIntuneDevices {
 		[parameter()][switch] $Detailed,
 		[parameter()][switch] $NoApps
 	)
-	Get-DsIntuneAuth -UserName $UserName
-	$Devices = Get-ManagedDevices
+	#if ($UserName) { Get-DsIntuneAuth -UserName $UserName } else { Get-DsIntuneAuth }
+	$Devices = Get-ManagedDevices -UserName $UserName
 	Write-Host "returned $($Devices.Count) managed devices"
 	if ($Devices) {
-		Write-Host "getting device properties (may take a few minutes)..."
+		if ($Detailed) {
+			Write-Host "getting detailed device properties (this may take a few minutes)..."
+		}
+		else {
+			Write-Host "getting device properties..."
+		}
 		$dx = 1
 		$dcount = $Devices.Count
 		foreach ($Device in $Devices){
@@ -451,7 +488,11 @@ function Get-DsIntuneDevices {
 				$DetectedApps = (Invoke-RestMethod -Uri $uri -Headers $authToken -Method Get).detectedApps 
 			}
 			$dx++
+			$LastSync = $Device.lastSyncDateTime
+			$SyncDays = (New-TimeSpan -Start $LastSync -End (Get-Date)).Days
+			
 			if ($Detailed) {
+				$compliant = $($Device.complianceState -eq $True)
 				$disksize  = [math]::Round(($Device.totalStorageSpaceInBytes / 1GB),2)
 				$freespace = [math]::Round(($Device.freeStorageSpaceInBytes / 1GB),2)
 				$mem       = [math]::Round(($Device.physicalMemoryInBytes / 1GB),2)
@@ -472,21 +513,22 @@ function Get-DsIntuneDevices {
 					Ownership    = $Device.ownerType
 					Category     = $Device.deviceCategoryDisplayName
 					EnrollDate   = $Device.enrolledDateTime
-					LastSyncTime = $Device.lastSyncDateTime
+					LastSyncTime = $LastSync
+					LastSyncDays = $SyncDays
+					Compliant    = $compliant
 					AutoPilot    = $Device.autopilotEnrolled
 					Apps         = $DetectedApps
 				}
 			}
 			else {
-				$disksize  = [math]::Round(($Device.totalStorageSpaceInBytes / 1GB),2)
-				$freespace = [math]::Round(($Device.freeStorageSpaceInBytes / 1GB),2)
 				[pscustomobject]@{
 					DeviceName   = $Device.DeviceName
 					DeviceID     = $DeviceID
 					UserName     = $Device.userDisplayName
 					OSName       = $Device.operatingSystem 
 					OSVersion    = $Device.osVersion
-					LastSyncTime = $Device.lastSyncDateTime
+					LastSyncTime = $LastSync
+					LastSyncDays = $SyncDays
 					Apps         = $DetectedApps
 				}
 			}
@@ -515,6 +557,25 @@ function Get-DsIntuneDevicesRaw {
 	[CmdletBinding()]
 	param ()
 	Get-ManagedDevices
+}
+
+function Get-DsIntuneDeviceSummary {
+	[CmdletBinding()]
+	param (
+		[parameter()][ValidateSet('OSName','Model','Manufacturer','ComplianceState','AutoPilotEnrolled','Ownership')] $Property = 'OSName',
+		[parameter()] $DataSet,
+		[parameter()][string] $UserName,
+		[parameter()][switch] $ShowProgress
+	)
+	if ($null -eq $DataSet) {
+		$DataSet = Get-DsIntuneDevices -UserName $UserName -Detailed -ShowProgress:$ShowProgress -NoApps
+	}
+	$DataSet | 
+		Where-Object {![string]::IsNullOrEmpty($_."$Property")} |
+			Select-Object DeviceName,$Property |
+				Sort-Object DeviceName -Unique |
+					Group-Object $Property |
+						Select-Object Count,Name
 }
 
 function Get-DsIntuneStaleDevices {
@@ -546,6 +607,7 @@ function Get-DsIntuneStaleDevices {
 	[CmdletBinding()]
 	param (
 		[parameter()] $DataSet,
+		[parameter()][string] $UserName,
 		[parameter()][int] $Days = 30,
 		[parameter()][switch] $Detailed,
 		[parameter()][switch] $ShowProgress
@@ -553,7 +615,7 @@ function Get-DsIntuneStaleDevices {
 	try {
 		if (!$DataSet) {
 			Write-Host "querying Intune devices" -ForegroundColor Cyan
-			$DataSet = Get-DsIntuneDevices -ShowProgress:$ShowProgress -Detailed:$Detailed
+			$DataSet = Get-DsIntuneDevices -UserName $UserName -ShowProgress:$ShowProgress -Detailed:$Detailed -NoApps
 		}
 		else {
 			Write-Verbose "re-querying $($DataSet.Count) devices from existing dataset"			
@@ -593,12 +655,23 @@ function Get-DsIntuneInstalledApps ($DataSet) {
 		if ($null -ne $row.Apps) {
 			$apps = $row.Apps
 			foreach ($app in $apps) {
-				if (![string]::IsNullOrEmpty($app.displayName)) {
+				$displayName = $($app.displayName).ToString().Trim()
+				if (![string]::IsNullOrEmpty($displayName)) {
+					if ($($app.Id).Length -gt 36) {
+						$ptype = 'WindowsStore'
+					}
+					elseif ($($app.Id).Length -eq 36) {
+						$ptype = 'Win32'
+					}
+					else {
+						$ptype = 'Other'
+					}
 					[pscustomobject]@{
 						DeviceName     = $devicename
-						ProductName    = $app.displayName
-						ProductVersion = $app.version
+						ProductName    = $displayName
+						ProductVersion = $($app.version).ToString().Trim()
 						ProductCode    = $app.Id
+						ProductType    = $ptype
 					}
 				}
 			}
@@ -642,16 +715,17 @@ function Get-DsIntuneDevicesWithApp {
 		[parameter(Mandatory)][ValidateNotNullOrEmpty()][string] $Username,
 		[parameter()][switch] $ShowProgress
 	)
-	# Get authentication token
+	Write-Verbose "Getting authentication token"
 	$AuthHeader = Get-AuthToken -User $Username
 
-	# Get all devices in Intune
+	Write-Verbose "getting all devices in Intune"
 	$AllDevices = Get-MsGraphData "deviceManagement/managedDevices"
 
 	# Get detected app for each device and check for app name
 	[System.Collections.Generic.List[PSObject]]$FoundApp = @()
 	$wp = 1
-	foreach($Device in $AllDevices) {
+	Write-Verbose "querying devices for $Application $Version"
+	foreach ($Device in $AllDevices) {
 		if ($ShowProgress) { Write-Progress -Activity "Found $($FoundApp.count)" -Status "$wp of $($AllDevices.count)" -PercentComplete $(($wp/$($AllDevices.count))*100) -id 1 }
 		$AppData = Get-MsGraphData "deviceManagement/managedDevices/$($Device.id)?`$expand=detectedApps"
 		$DetectedApp = $AppData.detectedApps | Where-Object {$_.displayname -like $Application}
@@ -721,6 +795,8 @@ function Export-DsIntuneInventory {
 		UserPrincipalName for authentication
 	.PARAMETER Overwrite
 		Replace output file it exists
+	.PARAMETER DaysOld
+		Filter stale accounts by specified number of days (range 10 to 1000, default = 180)
 	.PARAMETER Show
 		Open workbook in Excel when completed (requires Excel on host machine)
 	.PARAMETER Distinct
@@ -767,6 +843,7 @@ function Export-DsIntuneInventory {
 		[parameter(Mandatory)][ValidateNotNullOrEmpty()][string] $UserName,
 		[parameter()][switch] $Overwrite,
 		[parameter()][switch] $Distinct,
+		[parameter()][int][ValidateRange(10,1000)] $DaysOld = 180,
 		[parameter()][switch] $Show
 	)
 	if (!(Get-Module ImportExcel -ListAvailable)) {
@@ -790,13 +867,47 @@ function Export-DsIntuneInventory {
 		Write-Host "querying installed applications for each device" -ForegroundColor Cyan
 		$applist = Get-DsIntuneInstalledApps -DataSet $DeviceData
 		if ($Distinct) {
-			$applist = $applist | Select-Object DeviceName,ProductName | Sort-Object ProductName,DeviceName -Unique
+			$applist2 = $applist | Select-Object DeviceName,ProductName | Sort-Object ProductName,DeviceName -Unique
 		}
-		Write-Host "exporting results to file: $xlFile" -ForegroundColor Cyan
-		$DeviceData | Select-Object DeviceName,DeviceID,Manufacturer,Model,DiskSizeGB,FreeSpaceGB,SerialNumber,OSName,OSVersion,Ownership,Category |
-			Export-Excel -Path $xlFile -WorksheetName "Devices" -ClearSheet -AutoSize -AutoFilter -FreezeTopRow
-		$applist | 
-			Export-Excel -Path $xlFile -WorksheetName "Applications" -ClearSheet -AutoSize -AutoFilter -FreezeTopRow
+
+		#$skudata  = Get-MsolAccountSku | Select-Object AccountSkuId,SkuPartNumber,ActiveUnits,ConsumedUnits,LockedOutUnits,WarningUnits
+
+		Write-Verbose "gathering data - AzureAD devices"
+		$aaddevices  = Get-AADDevices
+		Write-Host "found $($aaddevices.Count) AzureAD device accounts"
+
+		$stale = Get-DsIntuneStaleDevices -DataSet $DeviceData -Days $DaysOld
+		Write-Host "found $($stale.Count) devices not synchronized in the last $DaysOld days"
+
+		#$applist = Get-DsIntuneDeviceApps -DataSet $DeviceData
+		#Write-Host "extracted $($apps.Count) application items" -ForegroundColor Green
+
+		#$apps2 = Invoke-DsIntuneAppQuery -AppDataSet $apps -ProductName $AppName
+		#Write-Host "filtered $($apps2.Count) unique installs of: $AppName" -ForegroundColor Green
+
+		$DeviceData | Where-Object {$_.DeviceName -ne 'User deleted for this device'} | 
+			Select-Object DeviceName,DeviceID,Manufacturer,Model,DiskSizeGB,FreeSpaceGB,SerialNumber,OSName,OSVersion,Ownership,Category |
+				Export-Excel -Path $xlFile -WorksheetName "IntuneDevices" -ClearSheet -AutoSize -FreezeTopRow -AutoFilter
+		$stale | Export-Excel -Path $XlFile -WorksheetName "StaleDevices" -ClearSheet -AutoSize -FreezeTopRow -AutoFilter 
+		$DeviceData | Where-Object {$_.DeviceName -eq 'User deleted for this device'} | 
+			Select-Object DeviceName,DeviceID,Manufacturer,Model,DiskSizeGB,FreeSpaceGB,SerialNumber,OSName,OSVersion,Ownership,Category |
+				Sort-Object DeviceName,Manufacturer,Model |
+					Export-Excel -Path $xlFile -WorksheetName "UserDeletedDevices" -ClearSheet -AutoSize -FreezeTopRow -AutoFilter
+		$applist | Where-Object {$_.ProductName -notcontains ('..','...','. .','. . .')} |
+			Sort-Object ProductName |
+				Export-Excel -Path $xlFile -WorksheetName "IntuneApps" -ClearSheet -AutoSize -FreezeTopRow -AutoFilter
+		$applist2 | Where-Object {$_.ProductName -notcontains ('..','...','. .','. . .')} |
+			Sort-Object ProductName,ProductVersion |
+				Export-Excel -Path $xlFile -WorksheetName "DistinctApps" -ClearSheet -AutoSize -FreezeTopRow -AutoFilter
+		$aaddevices | Sort-Object Name |
+			Export-Excel -Path $xlFile -WorksheetName "AadDevices" -ClearSheet -AutoSize -FreezeTopRowFirstColumn -AutoFilter
+		#$skudata | Export-Excel -Path $xlFile -WorksheetName "SKU_Data" -ClearSheet -AutoSize
+
+		#Write-Host "exporting results to file: $xlFile" -ForegroundColor Cyan
+		#$DeviceData | Select-Object DeviceName,DeviceID,Manufacturer,Model,DiskSizeGB,FreeSpaceGB,SerialNumber,OSName,OSVersion,Ownership,Category |
+		#	Export-Excel -Path $xlFile -WorksheetName "Devices" -ClearSheet -AutoSize -AutoFilter -FreezeTopRow
+		#$applist | 
+		#	Export-Excel -Path $xlFile -WorksheetName "Applications" -ClearSheet -AutoSize -AutoFilter -FreezeTopRow
 		Write-Host "Results saved to: $xlFile" -ForegroundColor Green
 		$time2 = Get-Date
 		$rt = New-TimeSpan -Start $time1 -End $time2
