@@ -13,8 +13,8 @@ Export Intune Device Applications Inventory to Excel Workbook
 ## SYNTAX
 
 ```
-Export-DsIntuneInventory [[-DeviceData] <Object>] [-Title] <String> [-UserName] <String> [-Overwrite]
- [-Distinct] [[-DaysOld] <Int32>] [-Show] [<CommonParameters>]
+Export-DsIntuneInventory [[-DeviceData] <Object>] [-Title] <String> [[-UserName] <String>] [-Overwrite]
+ [-Distinct] [[-DaysOld] <Int32>] [[-DeviceOS] <String>] [-Show] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -54,6 +54,17 @@ display the unique App results in Excel when finished
 ### EXAMPLE 4
 ```
 $devices = Get-DsIntuneDevices -UserName "john.doe@contoso.com" | Where-Object {$_.OSName -eq 'Windows'}
+```
+
+$apps = Get-DsIntuneInstalledApps -DataSet $devices
+Export-DsIntuneInventory -DeviceData $devices -Title "Contoso" -UserName "john.doe@contoso.com" -Overwrite -Show -Distinct
+
+Processes existing data ($devices) for only Windows devices, to generate output file with "Contoso" in the
+filename, and display the unique App results in Excel when finished
+
+### EXAMPLE 5
+```
+$devices = Get-DsIntuneDevices -UserName "john.doe@contoso.com" -DeviceOS 'Windows'
 ```
 
 $apps = Get-DsIntuneInstalledApps -DataSet $devices
@@ -104,7 +115,7 @@ Type: String
 Parameter Sets: (All)
 Aliases:
 
-Required: True
+Required: False
 Position: 3
 Default value: None
 Accept pipeline input: False
@@ -152,6 +163,22 @@ Aliases:
 Required: False
 Position: 4
 Default value: 180
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -DeviceOS
+Filter devices and derivative datasets to specified OS.
+Default is 'All'
+
+```yaml
+Type: String
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: 5
+Default value: All
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
