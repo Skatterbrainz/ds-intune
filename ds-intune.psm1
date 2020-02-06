@@ -192,31 +192,38 @@ Function Get-AADUser() {
 function Get-AADDevices {
 	if (!$AADCred) { $Global:AADCred = Connect-AzureAD }
 	$aadcomps = Get-AzureADDevice -All $True
-	#$cc = $aadcomps.Count
-	#$ix = 1
-	$llogin = $_.ApproximateLastLogonTimeStamp
-	if (![string]::IsNullOrEmpty($llogin)) {
-		$daysOld = (New-TimeSpan -Start $llogin -End (Get-Date)).Days
-	}
+	Write-Verbose "returned $($aadcomps.Count) devices from Azure AD"
 	$aadcomps | Foreach-Object {
+		$llogin = $_.ApproximateLastLogonTimeStamp
+		if (![string]::IsNullOrEmpty($llogin)) {
+			$xdaysOld = (New-TimeSpan -Start $([datetime]$llogin) -End (Get-Date)).Days
+		}
+		else {
+			$xdaysOld = $null
+		}
+		if (![string]::IsNullOrEmpty($_.LastDirSyncTime)) {
+			$xSyncDays = (New-TimeSpan -Start $([datetime]$_.LastDirSyncTime) -End (Get-Date)).Days
+		}
+		else {
+			$xSyncDays = $null
+		}
 		[pscustomobject]@{
 			Name           = $_.DisplayName
 			DeviceId       = $_.DeviceId
 			ObjectId       = $_.ObjectId
 			Enabled        = $_.AccountEnabled
-			OS             = $_.DeviceOSType
-			OSversion      = $_.DeviceOSVersion
+			OSName         = $_.DeviceOSType
+			OSVersion      = $_.DeviceOSVersion
 			TrustType      = $_.DeviceTrustType
 			LastLogon      = $_.ApproximateLastLogonTimeStamp
-			LastLogonDays  = $daysOld
+			LastLogonDays  = $xdaysOld
 			IsCompliant    = $($_.IsCompliant -eq $True)
 			IsManaged      = $($_.IsManaged -eq $True)
 			DirSyncEnabled = $($_.DirSyncEnabled -eq $True)
 			LastDirSync    = $_.LastDirSyncTime
+			LastSyncDays   = $xSyncDays
 			ProfileType    = $_.ProfileType
-			#RowNum         = "$ix of $cc"
 		}
-		#$ix++
 	}
 }
 
@@ -669,11 +676,11 @@ function Get-DsIntuneInstalledApps ($DataSet) {
 							$ptype = 'Other'
 						}
 						[pscustomobject]@{
-							DeviceName     = $devicename
 							ProductName    = $displayName
 							ProductVersion = $($app.version).ToString().Trim()
 							ProductCode    = $app.Id
 							ProductType    = $ptype
+							DeviceName     = $devicename
 						}
 					}
 				}
@@ -804,6 +811,8 @@ function Export-DsIntuneInventory {
 		Open workbook in Excel when completed (requires Excel on host machine)
 	.PARAMETER Distinct
 		Filter DeviceName+AppName only to remove duplicates arising from different versions
+	.PARAMETER DeviceOS
+		Filter devices and derivative datasets to specified OS. Default is 'All'
 	.EXAMPLE
 		Export-DsIntuneInventory -Title "Contoso" -UserName "john.doe@contoso.com" -Overwrite
 
@@ -833,6 +842,14 @@ function Export-DsIntuneInventory {
 		Processes existing data ($devices) for only Windows devices, to generate output file with "Contoso" in the
 		filename, and display the unique App results in Excel when finished
 
+	.EXAMPLE
+		$devices = Get-DsIntuneDevices -UserName "john.doe@contoso.com" -DeviceOS 'Windows'
+		$apps = Get-DsIntuneInstalledApps -DataSet $devices
+		Export-DsIntuneInventory -DeviceData $devices -Title "Contoso" -UserName "john.doe@contoso.com" -Overwrite -Show -Distinct
+		
+		Processes existing data ($devices) for only Windows devices, to generate output file with "Contoso" in the
+		filename, and display the unique App results in Excel when finished
+
 	.NOTES
 		NAME: Export-DsIntuneInventory
 		Requires PS module ImportExcel
@@ -843,15 +860,22 @@ function Export-DsIntuneInventory {
 	param (
 		[parameter()] $DeviceData,
 		[parameter(Mandatory)][ValidateNotNullOrEmpty()][string] $Title,
-		[parameter(Mandatory)][ValidateNotNullOrEmpty()][string] $UserName,
+		[parameter()][ValidateNotNullOrEmpty()][string] $UserName,
 		[parameter()][switch] $Overwrite,
 		[parameter()][switch] $Distinct,
 		[parameter()][int][ValidateRange(10,1000)] $DaysOld = 180,
+		[parameter()][string][ValidateSet('All','Windows','Android','iOS')] $DeviceOS = 'All',
 		[parameter()][switch] $Show
 	)
 	if (!(Get-Module ImportExcel -ListAvailable)) {
 		Write-Warning "This function requires the PowerShell module ImportExcel, which is not installed."
 		break
+	}
+	if ($null -eq $DeviceData) {
+		if ([string]::IsNullOrEmpty($UserName)) {
+			Write-Warning "UserName must be provided when DeviceData is not provided."
+			break
+		}
 	}
 	try {
 		$xlFile = "$($env:USERPROFILE)\Documents\$Title`_IntuneDevices_$(Get-Date -f 'yyyy-MM-dd').xlsx"
@@ -866,6 +890,10 @@ function Export-DsIntuneInventory {
 		}
 		else {
 			Write-Warning "device dataset should be derived with [-Detailed] option, to get the full set of properties."
+		}
+		if ($DeviceOS -ne 'All') {
+			$DeviceData = $DeviceData | Where-Object {$_.OSName -eq $DeviceOS}
+			Write-Host "found $($DeviceData.Count) devices running $DeviceOS"
 		}
 		Write-Host "querying: installed applications for each device"
 		$applist = Get-DsIntuneInstalledApps -DataSet $DeviceData
@@ -883,22 +911,26 @@ function Export-DsIntuneInventory {
 		Write-Host "found $($stale.Count) devices not synchronized in the last $DaysOld days"
 
 		Write-Host "exporting data to workbook..."
+		$aaddevices | Sort-Object Name -Unique |
+			Export-Excel -Path $xlFile -WorksheetName "AADDevices" -ClearSheet -AutoSize -FreezeTopRowFirstColumn -AutoFilter
 		$DeviceData | Where-Object {$_.DeviceName -ne 'User deleted for this device'} | 
-			Select-Object * -ExcludeProperty Apps |
+			Select-Object * -ExcludeProperty Apps | Sort-Object DeviceName -Unique |
 				Export-Excel -Path $xlFile -WorksheetName "IntuneDevices" -ClearSheet -AutoSize -FreezeTopRow -AutoFilter
 		$stale | Select-Object * -ExcludeProperty Apps |	
 			Export-Excel -Path $XlFile -WorksheetName "StaleDevices" -ClearSheet -AutoSize -FreezeTopRow -AutoFilter 
 		$DeviceData | Where-Object {$_.DeviceName -eq 'User deleted for this device'} | 
 			Select-Object * -ExcludeProperty Apps | Sort-Object DeviceName,Manufacturer,Model |
 				Export-Excel -Path $xlFile -WorksheetName "UserDeletedDevices" -ClearSheet -AutoSize -FreezeTopRow -AutoFilter
-		$applist | Where-Object {$_.ProductName -notcontains ('..','...','. .','. . .')} |
+		$DeviceData | Where-Object {$_.FreeSpaceGB -lt 20 -and $_.OSName -eq 'Windows'} |
+			Select-Object * -ExcludeProperty Apps | Sort-Object DeviceName,Manufacturer,Model |
+				Export-Excel -Path $xlFile -WorksheetName "LowDisk" -ClearSheet -AutoSize -FreezeTopRow -AutoFilter
+		$applist | 
 			Sort-Object ProductName |
 				Export-Excel -Path $xlFile -WorksheetName "IntuneApps" -ClearSheet -AutoSize -FreezeTopRow -AutoFilter
-		$applist2 | Where-Object {$_.ProductName -notcontains ('..','...','. .','. . .')} |
-			Sort-Object ProductName,ProductVersion |
+		if ($null -ne $applist2) {
+			$applist2 | Sort-Object ProductName,ProductVersion |
 				Export-Excel -Path $xlFile -WorksheetName "DistinctApps" -ClearSheet -AutoSize -FreezeTopRow -AutoFilter
-		$aaddevices | Sort-Object Name |
-			Export-Excel -Path $xlFile -WorksheetName "AadDevices" -ClearSheet -AutoSize -FreezeTopRowFirstColumn -AutoFilter
+		}
 
 		Write-Host "Results saved to: $xlFile" -ForegroundColor Green
 		$time2 = Get-Date
