@@ -1153,3 +1153,5 @@ function Test-DsIntuneUpdate {
 		Write-Error $_.Exception.Message
 	}
 }
+
+Write-Host "This module is being deprecated. Please use module psIntune instead." -ForegroundColor Red 
