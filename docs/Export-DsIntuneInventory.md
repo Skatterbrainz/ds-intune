@@ -13,8 +13,9 @@ Export Intune Device Applications Inventory to Excel Workbook
 ## SYNTAX
 
 ```
-Export-DsIntuneInventory [[-DeviceData] <Object>] [-Title] <String> [[-UserName] <String>] [-Overwrite]
- [-Distinct] [[-DaysOld] <Int32>] [[-DeviceOS] <String>] [-Show] [<CommonParameters>]
+Export-DsIntuneInventory [[-DeviceData] <Object>] [[-OutputFolder] <String>] [-Title] <String>
+ [[-UserName] <String>] [-Overwrite] [-Distinct] [[-DaysOld] <Int32>] [[-DeviceOS] <String>] [-Show]
+ [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -35,6 +36,7 @@ $devices = Get-DsIntuneDevices -UserName "john.doe@contoso.com"
 ```
 
 $apps = Get-DsIntuneInstalledApps -DataSet $devices
+
 Export-DsIntuneInventory -DeviceData $devices -Title "Contoso" -UserName "john.doe@contoso.com" -Overwrite -Show
 
 Processes existing data ($devices) to generate output file with "Contoso" in the filename, and 
@@ -92,6 +94,21 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
+### -OutputFolder
+{{ Fill OutputFolder Description }}
+
+```yaml
+Type: String
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: 2
+Default value: "$($env:USERPROFILE)\Documents"
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
 ### -Title
 Title used for prefix of XLSX filename
 
@@ -101,7 +118,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: True
-Position: 2
+Position: 3
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -116,7 +133,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: False
-Position: 3
+Position: 4
 Default value: None
 Accept pipeline input: False
 Accept wildcard characters: False
@@ -161,14 +178,15 @@ Parameter Sets: (All)
 Aliases:
 
 Required: False
-Position: 4
+Position: 5
 Default value: 180
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
 ### -DeviceOS
-Filter devices and derivative datasets to specified OS.
+Filter devices and derivative datasets to specified OS. 
+Options include: Windows, iOS, Android, or All.
 Default is 'All'
 
 ```yaml
@@ -177,7 +195,7 @@ Parameter Sets: (All)
 Aliases:
 
 Required: False
-Position: 5
+Position: 6
 Default value: All
 Accept pipeline input: False
 Accept wildcard characters: False

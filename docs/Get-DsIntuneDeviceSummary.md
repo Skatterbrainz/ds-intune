@@ -1,14 +1,14 @@
 ---
 external help file: ds-intune-help.xml
 Module Name: ds-intune
-online version: https://github.com/Skatterbrainz/ds-intune/blob/master/docs/Get-DsIntuneDevicesRaw.md
+online version: https://github.com/Skatterbrainz/ds-intune/blob/master/docs/Get-DsIntuneDeviceSummary.md
 schema: 2.0.0
 ---
 
 # Get-DsIntuneDeviceSummary
 
 ## SYNOPSIS
-{{ Fill in the Synopsis }}
+Returns Summary by Property Set
 
 ## SYNTAX
 
@@ -18,21 +18,31 @@ Get-DsIntuneDeviceSummary [[-Property] <Object>] [[-DataSet] <Object>] [[-UserNa
 ```
 
 ## DESCRIPTION
-{{ Fill in the Description }}
+Returns grouped data by property set
 
 ## EXAMPLES
 
-### Example 1
-```powershell
-PS C:\> {{ Add example code here }}
+### EXAMPLE 1
+```
+$devices = Get-DsIntuneDevices -UserName "john.doe@contoso.com"
 ```
 
-{{ Add example description here }}
+Get-DsIntuneDeviceSummary -DataSet $devices -Property Model -ShowProgress
+
+Query against data returned from direct query and saved to $devices
+
+### EXAMPLE 2
+```
+Get-DsIntuneDeviceSummary -Property Model -UserName "john.doe@contoso.com" -ShowProgress
+```
+
+Query data directly from Intune graph source
 
 ## PARAMETERS
 
-### -DataSet
-{{ Fill DataSet Description }}
+### -Property
+Name of device property to group dataset on.
+Default is OSName
 
 ```yaml
 Type: Object
@@ -41,47 +51,16 @@ Aliases:
 
 Required: False
 Position: 1
-Default value: None
+Default value: OSName
 Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
-### -Property
-{{ Fill Property Description }}
+### -DataSet
+Devices dataset returned from Get-DsIntuneDevices
 
 ```yaml
 Type: Object
-Parameter Sets: (All)
-Aliases:
-Accepted values: OSName, Model, Manufacturer, ComplianceState, AutoPilotEnrolled, Ownership
-
-Required: False
-Position: 0
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -ShowProgress
-{{ Fill ShowProgress Description }}
-
-```yaml
-Type: SwitchParameter
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: Named
-Default value: None
-Accept pipeline input: False
-Accept wildcard characters: False
-```
-
-### -UserName
-{{ Fill UserName Description }}
-
-```yaml
-Type: String
 Parameter Sets: (All)
 Aliases:
 
@@ -92,16 +71,47 @@ Accept pipeline input: False
 Accept wildcard characters: False
 ```
 
+### -UserName
+Required for invoked query if DataSet is $null
+
+```yaml
+Type: String
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: 3
+Default value: None
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
+### -ShowProgress
+Show progress indicator while querying dataset
+
+```yaml
+Type: SwitchParameter
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: False
+Accept pipeline input: False
+Accept wildcard characters: False
+```
+
 ### CommonParameters
 This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutVariable, -OutBuffer, -PipelineVariable, -Verbose, -WarningAction, and -WarningVariable. For more information, see [about_CommonParameters](http://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### None
-
 ## OUTPUTS
 
-### System.Object
 ## NOTES
+Name: Get-DsIntuneDeviceSummary
 
 ## RELATED LINKS
+
+[https://github.com/Skatterbrainz/ds-intune/blob/master/docs/Get-DsIntuneDeviceSummary.md](https://github.com/Skatterbrainz/ds-intune/blob/master/docs/Get-DsIntuneDeviceSummary.md)
+

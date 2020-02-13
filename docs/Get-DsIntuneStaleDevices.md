@@ -70,7 +70,7 @@ Accept wildcard characters: False
 ```
 
 ### -Days
-Number of days to allow (default is 30)
+Number of days to allow, from 1 to 1000 (default is 30)
 
 ```yaml
 Type: Int32
