@@ -18,9 +18,12 @@ function Get-AuthToken {
 		This function is used to authenticate with the Graph API REST interface
 	.DESCRIPTION
 		The function authenticate with the Graph API Interface with the tenant name
+	.PARAMETER User
+		UserName for cloud services access
 	.EXAMPLE
-		Get-AuthToken
-		Authenticates you with the Graph API interface
+		Get-AuthToken -User "john.doe@contoso.com"
+
+		Authenticates user with the Graph API interface
 	.NOTES
 		NAME: Get-AuthToken
 	#>
@@ -48,10 +51,8 @@ function Get-AuthToken {
 		Write-Host
 		exit
 	}
-
 	# Getting path to ActiveDirectory Assemblies
 	# If the module count is greater than 1 find the latest version
-
 	if ($AadModule.count -gt 1){
 		$Latest_Version = ($AadModule | Select-Object version | Sort-Object)[-1]
 		$aadModule = $AadModule | Where-Object { $_.version -eq $Latest_Version.version }
@@ -94,9 +95,7 @@ function Get-AuthToken {
 			return $authHeader
 		}
 		else {
-			#Write-Host
 			Write-Host "Authorization Access Token is null, please re-run authentication..." -ForegroundColor Red
-			#Write-Host
 			break
 		}
 	}
@@ -110,13 +109,13 @@ function Get-AuthToken {
 function Get-DsIntuneAuth {
 	<#
 	.SYNOPSIS
-	Returns authentication token object
+		Returns authentication token object
 	.PARAMETER UserName
-	UserName for cloud services access
+		UserName for cloud services access
 	.EXAMPLE
-	Get-DsIntuneAuth -UserName "john.doe@contoso.com"
+		Get-DsIntuneAuth -UserName "john.doe@contoso.com"
 	.NOTES
-	Name: Get-DsIntuneAuth
+		Name: Get-DsIntuneAuth
 	#>
 	[CmdletBinding()]
 	param (
@@ -1123,7 +1122,7 @@ function Test-DsIntuneUpdate {
 	<#
 	.SYNOPSIS
 		Compare installed module version with latest in PS Gallery
-		
+
 	.DESCRIPTION
 		Compare installed module version with latest in PS Gallery
 
